@@ -18,6 +18,8 @@ class Cpu {
     // Address of data specified by the two operands supplied, least significant
     // byte first and adds the value of index register Y.
     ABSOLUTE_Y_INDEXED,
+    // Operate directly on the accumulator register.
+    ACCUMULATOR,
     // Operate directly on a constant supplied as an operand.
     IMMEDIATE,
     // Single operand which serves as a pointer to an address in zero page
@@ -41,7 +43,9 @@ class Cpu {
     // POST-INDEXED. Single byte operand forms address 0L. Value at address 0L
     // and 0L + 1 forms 16-byte address HH. Actual value is located at addrress
     // (HH + Y).
-    INDIRECT_INDEXED_Y
+    INDIRECT_INDEXED_Y,
+    // Relative addressing -- single byte address contained in data.
+    RELATIVE
   };
 
   enum class ProcessorFlag {
@@ -59,7 +63,7 @@ class Cpu {
   };
 
   void RunSingleIteration();
-  std::uint16_t GetInstructionData(AddressMode address_mode);
+  std::uint8_t GetInstructionData(AddressMode address_mode);
 
   Memory* memory_;
 
@@ -75,6 +79,25 @@ class Cpu {
   // Instruction Set:
 
   void Adc(AddressMode address_mode);
+  void And(AddressMode address_mode);
+  void Asl(AddressMode address_mode);
+  void Bcc(AddressMode address_mode);
+  void Bcs(AddressMode address_mode);
+  void Beq(AddressMode address_mode);
+  void Bit(AddressMode address_mode);
+  void Bmi(AddressMode address_mode);
+  void Bne(AddressMode address_mode);
+  void Bpl(AddressMode address_mode);
+  void Brk();
+  void Bvc(AddressMode address_mode);
+  void Bvs(AddressMode address_mode);
+  void Clc();
+  void Cld();
+  void Cli();
+  void Clv();
+  void Cmp(AddressMode address_mode);
+  void Cmx(AddressMode address_mode);
+  void Cmy(AddressMode address_mode);
 };
 
 }  // namespace nes_emu
