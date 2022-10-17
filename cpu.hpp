@@ -49,20 +49,25 @@ class Cpu {
   };
 
   enum class ProcessorFlag {
-    // Set if the last instruction resulted in an overflow from bit 7 or an underflow from bit 0.
+    // Set if the last instruction resulted in an overflow from bit 7 or an
+    // underflow from bit 0.
     CARRY,
     // Set if the result of the last instruction as 0.
     ZERO,
-    // Set if the result of the last instruction is negative (i.e. bit 7 of the result is 1).
+    // Set if the result of the last instruction is negative (i.e. bit 7 of the
+    // result is 1).
     NEGATIVE,
-    // Set if an invalid two's complement result was obtained by the previous instruction:
+    // Set if an invalid two's complement result was obtained by the previous
+    // instruction:
     // -- A negative result obtained when a positive result was expected; or,
     // -- A positive result obtained when a negative result expected.
-    // For example, 64 + 64 = 128 (0x80 or 0b1000'0000) which is instead interpreted as -128.
+    // For example, 64 + 64 = 128 (0x80 or 0b1000'0000) which is instead
+    // interpreted as -128.
     OVERFLOW
   };
 
   void RunSingleIteration();
+  std::uint16_t GetMemoryAddress(AddressMode address_mode);
   std::uint8_t GetInstructionData(AddressMode address_mode);
 
   Memory* memory_;
@@ -96,8 +101,15 @@ class Cpu {
   void Cli();
   void Clv();
   void Cmp(AddressMode address_mode);
-  void Cmx(AddressMode address_mode);
-  void Cmy(AddressMode address_mode);
+  void Cpx(AddressMode address_mode);
+  void Cpy(AddressMode address_mode);
+  void Dec(AddressMode address_mode);
+  void Dex();
+  void Dey();
+  void Eor(AddressMode address_mode);
+  void Inc(AddressMode address_mode);
+  void Inx();
+  void Iny();
 };
 
 }  // namespace nes_emu

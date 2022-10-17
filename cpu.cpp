@@ -154,6 +154,33 @@ std::uint8_t Cpu::GetInstructionData(AddressMode address_mode) {
       return memory_->ReadByte(program_counter_ + 1);
     default:
       // TODO: Handle this error condition.
+      return 0;
+  }
+}
+
+std::uint16_t Cpu::GetMemoryAddress(AddressMode address_mode) {
+  switch (address_mode) {
+    case AddressMode::ABSOLUTE: {
+      const std::uint16_t address =
+          (static_cast<std::uint16_t>(memory_->ReadByte(program_counter_ + 2))
+           << 8) +
+          static_cast<std::uint16_t>(memory_->ReadByte(program_counter_ + 1));
+      return address;
+    }
+    case AddressMode::ABSOLUTE_X_INDEXED: {
+      const std::uint16_t address =
+          (static_cast<std::uint16_t>(memory_->ReadByte(program_counter_ + 2))
+           << 8) +
+          static_cast<std::uint16_t>(memory_->ReadByte(program_counter_ + 1)) +
+          static_cast<uint16_t>(index_x_);
+    }
+    case AddressMode::ZERO_PAGE:
+      return memory_->ReadByte(program_counter_ + 1);
+    case AddressMode::ZERO_PAGE_X_INDEXED:
+      return memory_->ReadByte(program_counter_ + 1) + index_x_;
+    default:
+      // TODO: Handle error condition.
+      return 0;
   }
 }
 
@@ -269,7 +296,7 @@ void Cpu::Cli() { processor_status_ &= 0b1111'1011; }
 void Cpu::Clv() { processor_status_ &= 0b1011'1111; }
 
 void Cpu::Cmp(AddressMode address_mode) {
-  const auto value = accumulator_ - GetInstructionData(address_mode);
+  const uint8_t value = accumulator_ - GetInstructionData(address_mode);
   // TODO: Needs more research on this carry flag value. For instance, see:
   // http://6502.org/tutorials/compare_instructions.html. Here, it states that
   // Carry value is set if (A > M). However, the instruction states that it
@@ -282,9 +309,9 @@ void Cpu::Cmp(AddressMode address_mode) {
       UpdateProcessorStatusNegativeFlag(processor_status_, value);
 }
 
-void Cpu::Cmx(AddressMode address_mode) {
-  const auto value = index_x_ - GetInstructionData(address_mode);
-  // TODO: See comment in CMX. 
+void Cpu::Cpx(AddressMode address_mode) {
+  const uint8_t value = index_x_ - GetInstructionData(address_mode);
+  // TODO: See comment in CMX.
   processor_status_ =
       UpdateProcessorStatusCarryFlag(processor_status_, value, accumulator_);
   processor_status_ = UpdateProcessorStatusZeroFlag(processor_status_, value);
@@ -292,14 +319,78 @@ void Cpu::Cmx(AddressMode address_mode) {
       UpdateProcessorStatusNegativeFlag(processor_status_, value);
 }
 
-void Cpu::Cmy(AddressMode address_mode) {
-  const auto value = index_y_ - GetInstructionData(address_mode);
-  // TODO: See comment in CMX. 
+void Cpu::Cpy(AddressMode address_mode) {
+  const uint8_t value = index_y_ - GetInstructionData(address_mode);
+  // TODO: See comment in CMX.
   processor_status_ =
       UpdateProcessorStatusCarryFlag(processor_status_, value, accumulator_);
   processor_status_ = UpdateProcessorStatusZeroFlag(processor_status_, value);
   processor_status_ =
       UpdateProcessorStatusNegativeFlag(processor_status_, value);
+}
+
+void Cpu::Dec(AddressMode address_mode) {
+  const uint16_t address = GetMemoryAddress(address_mode);
+  const uint8_t value = memory_->ReadByte(address) - 1;
+  memory_->Write(address, value);
+
+  processor_status_ =
+      UpdateProcessorStatusNegativeFlag(processor_status_, value);
+  processor_status_ = UpdateProcessorStatusZeroFlag(processor_status_, value);
+}
+
+void Cpu::Dex() {
+  index_x_ = index_x_ - 1;
+
+  processor_status_ =
+      UpdateProcessorStatusNegativeFlag(processor_status_, index_x_);
+  processor_status_ =
+      UpdateProcessorStatusZeroFlag(processor_status_, index_x_);
+}
+
+void Cpu::Dey() {
+  index_y_ = index_y_ - 1;
+
+  processor_status_ =
+      UpdateProcessorStatusNegativeFlag(processor_status_, index_y_);
+  processor_status_ =
+      UpdateProcessorStatusZeroFlag(processor_status_, index_y_);
+}
+
+void Cpu::Eor(AddressMode address_mode) {
+  accumulator_ = GetInstructionData(address_mode) | accumulator_;
+  processor_status_ =
+      UpdateProcessorStatusNegativeFlag(processor_status_, accumulator_);
+  processor_status_ =
+      UpdateProcessorStatusZeroFlag(processor_status_, accumulator_);
+}
+
+void Cpu::Inc(AddressMode address_mode) {
+  std::uint16_t address = GetMemoryAddress(address_mode);
+  std::uint8_t value = memory_->ReadByte(address) + 1;
+  memory_->Write(address, value);
+
+  processor_status_ =
+      UpdateProcessorStatusNegativeFlag(processor_status_, value);
+  processor_status_ = UpdateProcessorStatusZeroFlag(processor_status_, value);
+}
+
+void Cpu::Inx() {
+  index_x_ = index_x_ + 1;
+
+  processor_status_ =
+      UpdateProcessorStatusNegativeFlag(processor_status_, index_x_);
+  processor_status_ =
+      UpdateProcessorStatusZeroFlag(processor_status_, index_x_);
+}
+
+void Cpu::Iny() {
+  index_y_ = index_y_ + 1;
+
+  processor_status_ =
+      UpdateProcessorStatusNegativeFlag(processor_status_, index_y_);
+  processor_status_ =
+      UpdateProcessorStatusZeroFlag(processor_status_, index_y_);
 }
 
 }  // namespace nes_emu
